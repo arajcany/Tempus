@@ -1,9 +1,8 @@
 <?php
-namespace App\Extension;
+namespace arajcany\Tempus;
 
 use Cake\Chronos\Chronos;
 use DateTime;
-use Exception;
 
 
 /**
