@@ -1,7 +1,7 @@
 <?php
 namespace arajcany\Tempus;
 
-use Cake\Chronos\Chronos;
+use Cake\Chronos\MutableDateTime;
 use DateTime;
 
 
@@ -10,10 +10,17 @@ use DateTime;
  *
  * Added extra methods to roll to the start/end of periods
  * Ability to convert a string into a DateTime range
- *
  */
-class Tempus extends Chronos
+class Tempus extends MutableDateTime
 {
+
+    /**
+     * {@inheritDoc}
+     */
+    public function __construct($time = null, $tz = null)
+    {
+        parent::__construct($time, $tz);
+    }
 
     /**
      * Resets the time to XX:00:00
@@ -204,7 +211,8 @@ class Tempus extends Chronos
             $returnTimeRange = [];
 
             //==== Start of Range ====================
-            $startOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['start']['baseTimestamp']);
+            $startOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['start']['baseTimestamp'],
+                $this->timezoneName);
             //Roll to start of the unit
             $startOfUnit = 'startOf' . ucwords($expressions['start']['unit']);
             $startOfRange->$startOfUnit();
@@ -217,7 +225,8 @@ class Tempus extends Chronos
             $returnTimeRange['start'] = $startOfRange;
 
             //==== End of Range ====================
-            $endOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['end']['baseTimestamp']);
+            $endOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['end']['baseTimestamp'],
+                $this->timezoneName);
             //Roll to end of the unit
             $endOfUnit = 'endOf' . ucwords($expressions['end']['unit']);
             $endOfRange->$endOfUnit();
