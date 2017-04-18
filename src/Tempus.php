@@ -1,21 +1,22 @@
 <?php
 namespace arajcany\Tempus;
 
-use Cake\Chronos\MutableDateTime;
+use Cake\I18n\Time;
 use DateTime;
 
 
 /**
- * Extension to the Cake\Chronos\Chronos class
+ * Extension to the Cake\I18n\Time class
  *
  * Added extra methods to roll to the start/end of periods
  * Ability to convert a string into a DateTime range
  */
-class Tempus extends MutableDateTime
+class Tempus extends Time
 {
-
     /**
-     * {@inheritDoc}
+     * Tempus constructor.
+     * @param null $time
+     * @param null $tz
      */
     public function __construct($time = null, $tz = null)
     {
@@ -117,6 +118,7 @@ class Tempus extends MutableDateTime
     /**
      * Shift the quarter by the given value
      *
+     * @param $value
      * @return static
      */
     public function addQuarters($value)
@@ -127,6 +129,7 @@ class Tempus extends MutableDateTime
     /**
      * Shift the quarter by the given value
      *
+     * @param $value
      * @return static
      */
     public function subQuarters($value)
@@ -213,29 +216,31 @@ class Tempus extends MutableDateTime
             //==== Start of Range ====================
             $startOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['start']['baseTimestamp'],
                 $this->timezoneName);
-            //Roll to start of the unit
-            $startOfUnit = 'startOf' . ucwords($expressions['start']['unit']);
-            $startOfRange->$startOfUnit();
+            //perform offset
             if ($expressions['start']['direction'] == '-') {
                 $mathOperation = 'sub' . ucwords($expressions['start']['unit']) . 's';
             } else {
                 $mathOperation = 'add' . ucwords($expressions['start']['unit']) . 's';
             }
             $startOfRange->$mathOperation($expressions['start']['offset']);
+            //roll to start of the unit
+            $startOfUnit = 'startOf' . ucwords($expressions['start']['unit']);
+            $startOfRange->$startOfUnit();
             $returnTimeRange['start'] = $startOfRange;
 
             //==== End of Range ====================
             $endOfRange = Tempus::createFromFormat("Y-m-d H:i:s", $expressions['end']['baseTimestamp'],
                 $this->timezoneName);
-            //Roll to end of the unit
-            $endOfUnit = 'endOf' . ucwords($expressions['end']['unit']);
-            $endOfRange->$endOfUnit();
+            //perform offset
             if ($expressions['end']['direction'] == '-') {
                 $mathOperation = 'sub' . ucwords($expressions['end']['unit']) . 's';
             } else {
                 $mathOperation = 'add' . ucwords($expressions['end']['unit']) . 's';
             }
             $endOfRange->$mathOperation($expressions['end']['offset']);
+            //roll to end of the unit
+            $endOfUnit = 'endOf' . ucwords($expressions['end']['unit']);
+            $endOfRange->$endOfUnit();
             $returnTimeRange['end'] = $endOfRange;
 
             return $returnTimeRange;
