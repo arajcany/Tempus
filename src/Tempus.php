@@ -1,4 +1,5 @@
 <?php
+
 namespace arajcany\Tempus;
 
 use Cake\I18n\Time;
@@ -285,6 +286,9 @@ class Tempus extends Time
             } elseif ($properties = $this->isTimestampExpression($inputStringTmp[0], true)) {
                 $startString = $properties;
                 $endString = $properties;
+            } elseif ($properties = $this->isMonthAndYearExpresssion($inputStringTmp[0], true)) {
+                $startString = $properties;
+                $endString = $properties;
             } else {
                 $startString = false;
                 $endString = false;
@@ -301,6 +305,8 @@ class Tempus extends Time
                 $startString = $properties;
             } elseif ($properties = $this->isTimestampExpression($inputStringTmp[0], true)) {
                 $startString = $properties;
+            } elseif ($properties = $this->isMonthAndYearExpresssion($inputStringTmp[0], true)) {
+                $startString = $properties;
             } else {
                 $startString = false;
             }
@@ -313,6 +319,8 @@ class Tempus extends Time
             } elseif ($properties = $this->isFormatExpression($inputStringTmp[1], true)) {
                 $endString = $properties;
             } elseif ($properties = $this->isTimestampExpression($inputStringTmp[1], true)) {
+                $endString = $properties;
+            } elseif ($properties = $this->isMonthAndYearExpresssion($inputStringTmp[1], true)) {
                 $endString = $properties;
             } else {
                 $endString = false;
@@ -343,6 +351,9 @@ class Tempus extends Time
         //lower case
         $outputString = strtolower($inputString);
 
+        //trim
+        $outputString = trim($outputString);
+
         //word substitution
         $substitutionTables = [
             'last' => ['previous', 'past'],
@@ -356,6 +367,18 @@ class Tempus extends Time
             'year' => ['years'],
             'week' => ['weeks'],
             'quarter' => ['quarters'],
+            'jan' => ['january'],
+            'feb' => ['february'],
+            'mar' => ['march'],
+            'apr' => ['april'],
+            'may' => ['may'],
+            'jun' => ['june'],
+            'jul' => ['july'],
+            'aug' => ['august'],
+            'sep' => ['september', 'sept'],
+            'oct' => ['october'],
+            'nov' => ['november'],
+            'dec' => ['december'],
         ];
         foreach ($substitutionTables as $cleanWord => $dirtyWords) {
             foreach ($dirtyWords as $dirtyWord) {
@@ -538,6 +561,79 @@ class Tempus extends Time
             return false;
         }
 
+    }
+
+    /**
+     * Checks if the passed inputString is a "month-year" formatted string
+     * e.g. "June 2017" or "Mar 1999"
+     *
+     * @param string $inputString
+     * @param bool|false $properties
+     * @return array|bool
+     */
+    public function isMonthAndYearExpresssion($inputString = '', $properties = false)
+    {
+        $inputString = $this->cleanupString($inputString);
+        $inputString = str_replace(" ", "-", $inputString);
+        $inputStringParts = explode("-", $inputString);
+
+        //check that there are 2 parts
+        if (!isset($inputStringParts[0]) && !isset($inputStringParts[1])) {
+            return false;
+        }
+
+        $months = [
+            '01' => 'jan',
+            '02' => 'feb',
+            '03' => 'mar',
+            '04' => 'apr',
+            '05' => 'may',
+            '06' => 'jun',
+            '07' => 'jul',
+            '08' => 'aug',
+            '09' => 'sep',
+            '10' => 'oct',
+            '11' => 'nov',
+            '12' => 'dec',
+        ];
+        $monthsInverted = array_flip($months);
+
+        //check the month part
+        if (in_array($inputStringParts[0], $months)) {
+            $monthPart = true;
+            $monthNumber = $monthsInverted[$inputStringParts[0]];
+        } else {
+            return false;
+        }
+
+        //check the year part
+        if (sha1($inputStringParts[1]) == sha1(intval($inputStringParts[1]))) {
+            $yearPart = true;
+            $yearNumber = intval($inputStringParts[1]);
+        } else {
+            return false;
+        }
+
+        //return
+        if ($monthPart == true && $yearPart == true) {
+            if ($properties == true) {
+                return [
+                    'expression' => $inputString,
+                    'expressionType' => 'monthAndYear',
+                    'month' => $monthNumber,
+                    'year' => $yearNumber,
+                    'unit' => 'month',
+                    'offset' => 0,
+                    'direction' => '+',
+                    //use year and month and tack on "-d H:i:s"
+                    'baseTimestamp' => $yearNumber . "-" . $monthNumber . "-01 00:00:00"
+                ];
+            } else {
+                return true;
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
